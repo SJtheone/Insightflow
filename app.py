@@ -75,3 +75,20 @@ def upload_file():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    # ... (código anterior)
+
+    try:
+        df = pd.read_csv(file)
+
+        required_columns = ['Sales', 'Expenses']
+        for col in required_columns:
+            if col not in df.columns:
+                return jsonify({"error": f"Missing required column: {col}"}), 400
+            try:
+                df[col] = pd.to_numeric(df[col]) # Converter para números
+            except ValueError:
+                return jsonify({"error": f"Column '{col}' must contain numeric values"}), 400
+        # ... (resto do código)
