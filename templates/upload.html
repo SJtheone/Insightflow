@@ -30,6 +30,70 @@
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script>
         // ... (Código JavaScript abaixo)
+        const form = document.getElementById('uploadForm');
+const resultsDiv = document.getElementById('results');
+const loadingDiv = document.getElementById('loading');
+const downloadLink = document.getElementById('downloadLink');
+
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    resultsDiv.innerHTML = '';
+    loadingDiv.style.display = 'block';
+    downloadLink.style.display = 'none'; //Esconde o link de download
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log("Resposta do servidor:", response);
+        if (!response.ok) {
+            return response.json().then(err => {throw new Error(err.error || "Erro no upload")});
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Dados recebidos:", data);
+        loadingDiv.style.display = 'none';
+
+        if (data.error) {
+            resultsDiv.innerHTML = `<div class="alert alert-danger" role="alert">${data.error}</div>`;
+        } else if (Object.keys(data).length > 0) { //Verifica se o json tem dados
+            var editor = new $.fn.dataTable.Editor({
+                ajax: "/save_data",
+                table: "#example",
+                fields: Object.keys(data).map(key => ({ label: key.replace(/_/g, ' ') + ':', name: key })),
+            });
+
+            var table = $('#example').DataTable({
+                data: Object.values(data).map((_, i) => Object.keys(data).reduce((acc, k) => {
+                    acc[k] = data[k] instanceof Array ? data[k][i] : data[k];
+                    return acc;
+                }, {})),
+                columns: Object.keys(data).map(key => ({ data: key, title: key.replace(/_/g, ' ') })),
+                select: 'single',
+                buttons: [
+                    { extend: "create", editor: editor },
+                    { extend: "edit", editor: editor },
+                    { extend: "remove", editor: editor }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-PT.json',
+                }
+            });
+            downloadLink.style.display = 'block'; //Mostra o link de download
+        } else {
+            resultsDiv.innerHTML = `<div class="alert alert-warning" role="alert">O ficheiro não tem dados para apresentar.</div>`;
+        }
+    })
+    .catch(error => {
+        console.error("Erro no fetch:", error);
+        loadingDiv.style.display = 'none';
+        resultsDiv.innerHTML = `<div class="alert alert-danger" role="alert">Erro na requisição: ${error}</div>`;
+    });
+});
     </script>
 </body>
 </html>
