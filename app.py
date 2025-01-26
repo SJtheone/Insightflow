@@ -25,7 +25,7 @@ def calculate_insights(df):
 
 @app.route('/')
 def home():
-    return render_template('upload.html') #Procura o ficheiro em templates/upload.html
+    return render_template('upload.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -41,12 +41,11 @@ def upload_file():
         for col in required_columns:
             if col not in df.columns:
                 return jsonify({"error": f"Missing required column: {col}"}), 400
-
-            try:  # Início do bloco try interno (CORRETO)
-                df[col] = pd.to_numeric(df[col])  # Converter para números
-            except ValueError:  # except alinhado com o try interno (CORRETO)
+            try:
+                df[col] = pd.to_numeric(df[col])
+            except ValueError:
                 return jsonify({"error": f"Column '{col}' must contain numeric values"}), 400
-            
+
         insights = calculate_insights(df)
 
         cleaned_insights = {}
@@ -62,7 +61,7 @@ def upload_file():
 
         return jsonify(cleaned_insights)
 
-    except Exception as e: #Except alinhado com o try principal (CORRETO)
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
