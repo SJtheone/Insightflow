@@ -27,28 +27,39 @@ def calculate_insights(df):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        print("Pedido POST recebido para /upload")
         if 'file' not in request.files:
+            print("Nenhum ficheiro selecionado")
             return jsonify({"error": "Nenhum ficheiro selecionado"})
 
         file = request.files['file']
-
+        print(f"Nome do ficheiro: {file.filename}")
         try:
+            print("A tentar ler o ficheiro CSV")
             df = pd.read_csv(file)
+            print("Ficheiro CSV lido com sucesso")
+            print("Conteúdo do DataFrame:\n", df)  # Imprime o DataFrame para ver o conteúdo
             required_columns = ['Sales', 'Expenses']
             for col in required_columns:
                 if col not in df.columns:
+                    print(f"Falta a coluna: {col}") #Imprime a coluna em falta
                     return jsonify({"error": f"Falta a coluna obrigatória: {col}"}), 400
                 try:
-                    df[col] = pd.to_numeric(df[col], errors='coerce') #Trata erros de conversao para numeros e mete NaN
-                except ValueError:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                except ValueError as ve:
+                    print(f"Erro na conversão da coluna '{col}': {ve}") #Imprime o erro de conversao
                     return jsonify({"error": f"A coluna '{col}' deve conter valores numéricos"}), 400
-            df.dropna(inplace=True) #Remove linhas com NaN
-            if df.empty: #verifica se o dataframe esta vazio depois de remover os NaN
+            df.dropna(inplace=True)
+            if df.empty:
                 return jsonify({"error": "O ficheiro não tem dados válidos para processar."})
             insights = calculate_insights(df)
+            print("Insights calculados:", insights)
             return jsonify(insights)
 
         except Exception as e:
+            print(f"Erro geral: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({"error": str(e)}), 500
     return render_template('upload.html')
 
