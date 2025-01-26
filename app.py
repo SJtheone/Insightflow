@@ -66,3 +66,11 @@ def upload_file():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/save_data', methods=['POST'])
+def save_data():
+    data = request.form.to_dict()
+    # Aqui vais processar os dados recebidos (data)
+    # Por exemplo, guardar numa base de dados ou num ficheiro
+    print(data) # Imprime os dados na consola para ver o que está a ser enviado
+    return jsonify({"success": True}) # Responde com sucesso
