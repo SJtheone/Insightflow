@@ -47,6 +47,38 @@
 
     <script>
         // ... (Código JavaScript abaixo)
+        // ... (Código anterior para o fetch)
+
+.then(data => {
+    loadingDiv.style.display = 'none';
+
+    if (data.error) {
+        resultsDiv.innerHTML = `<div class="alert alert-danger" role="alert">${data.error}</div>`;
+    } else {
+        // Inicializar o DataTables Editor
+        var editor = new $.fn.dataTable.Editor({
+            ajax: "/save_data", // Rota para guardar as alterações
+            table: "#example",
+            fields: [
+                { label: "Sales:", name: "Sales" },
+                { label: "Expenses:", name: "Expenses" },
+                { label: "Product:", name: "Product" } // Se existir
+            ]
+        });
+
+        var table = $('#example').DataTable({
+            data: data,
+            columns: Object.keys(data[0]).map(key => ({ data: key, title: key.replace(/_/g, ' ') })),
+            select: 'single',
+            buttons: [
+                { extend: "create", editor: editor },
+                { extend: "edit", editor: editor },
+                { extend: "remove", editor: editor }
+            ]
+        });
+    }
+})
+// ... (resto do código JavaScript)
     </script>
 </body>
 </html>
