@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh; /* Garante que o conteúdo centraliza verticalmente mesmo com pouco conteúdo */
             background-color: #f4f4f9;
         }
         .upload-container {
@@ -22,31 +22,55 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        input[type="file"] {
-            margin: 20px 0;
+        #results { /* Estilos para a área de resultados */
+            margin-top: 20px;
+            text-align: left;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            text-transform: uppercase;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
+
+        #results p{ /* Espaçamento entre os parágrafos */
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div class="upload-container">
         <h1>Upload CSV File</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" enctype="multipart/form-data">
             <input type="file" name="file" accept=".csv" required>
             <br>
             <button type="submit">Upload</button>
         </form>
+        <div id="results"></div> <--- Div para exibir os resultados
     </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultsDiv = document.getElementById('results');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
+
+            const formData = new FormData(form);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = ''; // Limpa resultados anteriores
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Erro: ${data.error}</p>`;
+                } else {
+                    for (const key in data) {
+                        resultsDiv.innerHTML += `<p><strong>${key.replace(/_/g, ' ')}:</strong> ${data[key]}</p>`; // Exibe cada insight
+                    }
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<p style="color: red;">Erro na requisição: ${error}</p>`;
+            });
+        });
+    </script>
 </body>
 </html>
